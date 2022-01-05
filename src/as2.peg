@@ -1,0 +1,196 @@
+input_element = {
+    white_space
+    | line_terminator
+    | comment
+    | token
+}
+
+token = {
+    reserved_word
+    | identifier
+    | punctuator
+    | numeric_literal
+    | string_literal
+}
+
+reserved_word = {
+    keyword
+    | future_reserved_word
+    | null_literal
+    | boolean_literal
+}
+
+keyword = {
+    break
+    | continue
+    | delete
+    | else
+    | for
+    | function
+    | if
+    | in
+    | new
+    | return
+    | this
+    | typeof
+    | var
+    | void
+    | while
+    | with
+}
+
+future_reserved_word = {}
+
+identifier = { !reserved_word identifier_name }
+identifier_name = {
+    identifier_letter
+    | identifier_name identifier_letter
+    | identifier_name decimal_digit
+}
+identifier_letter = { 'a'..'z' | 'A'..'Z' | '$' | '_' }
+decimal_digit = { '0'..'9' }
+
+punctuator = {
+    '=' | '>' | '<' | "==" | "<=" | ">=" | "!=" | ',' | '!' | '~' | '?' | ':' | '.' | "&&"
+    | "||" | "++" | "--" | '+' | '-' | '*' | '/' | '&' | '|' | '^' | '%' | "<<" | ">>"
+    | ">>>" | "+=" | "-=" | "*=" | "/=" | "&=" | "|=" | "^=" | "%=" | "<<=" | ">>="
+    | ">>>=" | '(' | ')' | '{' | '}' | '[' | ']' | ';'
+}
+
+literal = {
+    null_literal
+    | boolean_literal
+    | numeric_literal
+    | string_literal
+}
+
+null_literal = { "null" }
+
+boolean_literal = { "true" | "false" }
+
+numeric_literal = {
+    decimal_literal
+    | hex_integer_literal
+    | octal_integer_literal
+}
+
+decimal_literal = {
+    decimal_integer_literal '.' decimal_digits? exponent_part?
+    | '.' decimal_digits exponent_part?
+    decimal_integer_literal exponent_part?
+}
+
+decimal_integer_literal = {
+    '0'
+    | non_zero_digit decimal_digits?
+}
+
+decimal_digits = {
+    decimal_digit
+    | decimal_digits decimal_digit
+}
+
+non_zero_digit = { '1'..'9' }
+
+exponent_part = { exponent_indicator signed_integer }
+
+exponent_indicator = { 'e' | 'E' }
+
+signed_integer = {
+    decimal_digits
+    | '+' decimal_digits
+    | '-' decimal_digits
+}
+
+hex_integer_literal = {
+    "0x" hex_digit
+    | "0X" hex_digit
+    | hex_integer_literal hex_digit
+}
+
+hex_digit = { '0'..'9' | 'a'..'f' | 'A'..'F' }
+
+octal_integer_literal = {
+    '0' octal_digit
+    | octal_integer_literal octal_digit
+}
+
+octal_digit = { '0'..'7' }
+
+// 7.74 String Literals
+
+string_literal = {
+    '"' double_string_characters? '"'
+    | '\'' single_string_characters? '\''
+}
+
+double_string_characters = { double_string_character double_string_characters? }
+
+single_string_characters = { single_String_character single_string_characters? }
+
+double_string_character = {
+    !'"' !'\' !line_terminator source_character
+    | escape_sequence
+}
+
+single_string_character = {
+    !'\'' !'\' !line_terminator source_character
+    | escape_sequence
+}
+
+escape_sequence = {
+    character_escape_sequence
+    | octal_escape_sequence
+    | hex_escape_sequence
+    | unicode_escape_sequence
+}
+
+character_escape_sequence = {
+    '\\' single_escape_character
+    | '\\' non_escape_character
+}
+
+single_escape_character = { '\'' | '"' | '\\' | 'b' | 'f' | 'n' | 'r' | 't' }
+
+non_escape_character = { !escape_character !line_terminator source_character }
+
+escape_character = {
+    single_escape_character
+    | octal_digit
+    | 'x'
+    | 'u'
+}
+
+hex_escape_sequence = { "\\x" hex_digit hex_digit }
+
+octal_escape_sequence = {
+    '\\' octal_digit
+    | '\\' octal_digit octal_digit
+    | '\\' zero_to_three octal_digit octal_digit
+}
+
+zero_to_three = { '0'..'3' }
+
+unicode_escape_sequence = { "\\u" hex_digit hex_digit hex_digit hex_digit }
+
+white_space = { '\t' | '\u000b' | '\u000c' | '\u0020' }
+line_terminator = { '\u000a' | '\u000d' }
+
+comment = { multi_line_comment | single_line_comment }
+
+multi_line_comment = { "/*" multi_line_comment_chars? "*/" }
+multi_line_comment_chars = {
+    multi_line_not_asterisk_char multi_line_comment_chars?
+    | '*' post_asterisk_comment_chars?
+}
+post_asterisk_comment_chars = {
+    multi_line_not_forward_slash_or_asterisk_char multi_line_comment_chars?
+    | '*' post_asterisk_comment_chars?
+}
+multi_line_not_asterisk_char = { !'*' source_character }
+multi_line_not_forward_slash_or_asterisk_char = { !('*' | '/') source_character }
+
+
+single_line_comment = { "//" single_line_comment_chars? }
+single_line_comment_chars = { single_line_comment_char single_line_comment_chars? }
+single_line_comment_char = { !line_terminator source_character }
