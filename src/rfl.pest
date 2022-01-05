@@ -1,0 +1,138 @@
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+COMMENT = _{
+    "//" ~ (!NEWLINE ~ ANY)* |
+    "/*" ~ (!"*/" ~ ANY)* ~ "*/"
+}
+
+undefined = { "undefined" }
+null = { "null" }
+boolean_literal = { "false" | "true" }
+string_literal = @{ "\"" ~ (!"\"" ~ ANY)* ~ "\"" }
+integer_literal = @{ ("+" | "-")? ~ ASCII_DIGIT+ }
+float_literal = @{
+    ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT*)? ~ float_exponent?
+    | "." ~ ASCII_DIGIT+ ~ float_exponent?
+}
+
+float_exponent = {
+    ^"e" ~ ("+" | "-")? ~ ASCII_DIGIT+
+}
+
+twips_literal = @{ (integer_literal ~ "twips") | float_literal }
+rectangle = _{ twips_literal{4} }
+
+identifier = @{ (ASCII_ALPHANUMERIC | "_")+ }
+
+hex_blob = { (ASCII_HEX_DIGIT{2})* }
+
+rgb = @{ ASCII_HEX_DIGIT{6} }
+argb = @{ ASCII_HEX_DIGIT{8} }
+
+test = {
+    "test" ~ "{" ~ test_attributes ~ "}"
+}
+
+swf = { "swf" ~ "{" ~
+    swf_attribute* ~
+    swf_tag* ~
+    "}"
+}
+
+swf_attribute = _{
+    swf_name |
+    swf_version |
+    swf_compression |
+    swf_dimensions |
+    swf_framerate |
+    "background_color" ~ "{" ~ swf_background_color ~ "}"
+}
+
+swf_name = { "name" ~ "{" ~ string_literal ~ "}" }
+swf_version = { "version" ~ "{" ~ integer_literal ~ "}" }
+swf_compression = { "compression" ~ "{" ~ swf_compression_type ~ "}" }
+swf_compression_type = {
+    "none" |
+    "zlib" |
+    "lzma"
+}
+swf_dimensions = { "dimensions" ~ "{" ~ rectangle ~ "}" }
+swf_framerate = { "framerate" ~ "{" ~ float_literal ~ "}" }
+swf_background_color = { rgb }
+
+swf_tag = _{
+    do_action |
+    metadata |
+    shape |
+    show_frame
+}
+
+do_action = { "do_action" ~ "{" ~ avm1_ops* ~ "}" }
+metadata = { "metadata" ~ "{" ~ string_literal ~ "}" }
+show_frame = { "show_frame" }
+
+// Shapes
+
+shape = {
+    "shape" ~ "{" ~
+    shape_records* ~
+    "}"
+}
+
+shape_records = _{
+    shape_fill_style |
+    shape_move |
+    shape_move_relative |
+    shape_line |
+    shape_line_relative |
+    shape_line_horizontal |
+    shape_line_horizontal_relative |
+    shape_line_vertical |
+    shape_line_vertical_relative |
+    shape_curve |
+    shape_curve_relative
+}
+
+shape_fill_style = { "fill_style" ~ "{" ~ fill_style ~ "}" }
+shape_line_style = { "line_style" ~ "{" ~ line_style ~ "}" }
+shape_move = { "M" ~ twips_literal ~ twips_literal }
+shape_move_relative = { "m" ~ twips_literal ~ twips_literal }
+shape_line = { "L" ~ twips_literal ~ twips_literal }
+shape_line_relative = { "l" ~ twips_literal ~ twips_literal }
+shape_line_horizontal = { "H" ~ twips_literal ~ twips_literal }
+shape_line_horizontal_relative = { "h" ~ twips_literal ~ twips_literal }
+shape_line_vertical = { "V" ~ twips_literal ~ twips_literal }
+shape_line_vertical_relative = { "v" ~ twips_literal ~ twips_literal }
+shape_curve = { "C" ~ twips_literal ~ twips_literal ~  "," ~ twips_literal ~ twips_literal }
+shape_curve_relative = { "c" ~ twips_literal ~ twips_literal ~ "," ~ twips_literal ~ twips_literal }
+
+fill_style = _{
+    null |
+    fill_color
+}
+
+fill_color = { "color" ~ argb }
+
+line_style = {
+    null |
+    twips_literal ~ fill_color
+}
+
+avm1_ops = {
+    avm1_push |
+    avm1_trace
+}
+
+avm1_push = {
+    "push" ~ "{" ~ avm1_push_item* ~ "}"
+}
+
+avm1_push_item = _{
+    null |
+    undefined |
+    boolean_literal |
+    integer_literal |
+    float_literal |
+    string_literal
+}
+
+avm1_trace = { "trace" }

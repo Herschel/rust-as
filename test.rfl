@@ -1,0 +1,12 @@
+swf {
+    name { "tesat.swf" }
+    dimensions { 0 0 500 500 }
+    framerate { 30 }
+    background_color { ffff00 }
+
+    do_action {
+        push { "Testing" }
+        trace
+    }
+    show_frame
+}
